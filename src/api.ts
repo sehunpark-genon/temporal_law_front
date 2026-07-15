@@ -21,9 +21,18 @@ export interface Relation {
   relation_type: string; delegation_type: string | null; target_category: string;
   source_article_no: string; source_clause: string; link_text: string;
   target_law_name: string; target_article_no: string; target_url: string; resolve_method: string;
+  appendix_found?: boolean; appendix_dangling?: boolean; appendix_kind?: string;
 }
+export interface ArticleImage { type?: string; url: string; seq?: string; }
 export interface Article {
-  article_no: string; article_title: string; chapter: string; content: string; relations: Relation[];
+  article_no: string; article_title: string; chapter: string; content: string;
+  relations: Relation[]; images?: ArticleImage[]; enforcement_date?: string;
+}
+export interface Appendix {
+  kind?: string; no: string; branch?: string; title: string; content: string;
+  is_file_only?: boolean; enforcement_date?: string;
+  files?: { url: string; name?: string; kind?: string }[];
+  file_url?: string; view_url?: string;
 }
 export interface OrdinanceGroup {
   source_article_no: string; link_text: string; ordinance_count: number;
@@ -33,11 +42,18 @@ export interface Payload {
   law_name: string; mst: string; law_type: string; enforcement_date: string;
   body: { format: string; article_count: number; articles: Article[]; unmatched_relations?: Relation[] };
   ordinance_delegations: OrdinanceGroup[];
+  appendices?: Appendix[];
   relation_stats: Record<string, any>;
+}
+export interface LawVersion {
+  version_uid: string; mst: string; enforcement_date: string; promulgation_date: string;
+  promulgation_no: string; revision_type: string; is_current: boolean; is_future: boolean;
+  article_count: number;
 }
 export interface LawDetail {
   law_id: string; law_name: string; collected: boolean; synced_at: string | null;
   catalog: any; state: any; payload: Payload | null;
+  versions?: LawVersion[]; version_count?: number; current_version_uid?: string | null;
 }
 
 export interface Run {
@@ -50,6 +66,33 @@ export interface SyncHistoryItem {
   old_signature: string | null; new_signature: string | null; reason: string | null;
 }
 export interface Failure { law_id: string; law_name: string; attempts: number; last_error: string | null; last_checked_at: string | null; }
+
+// ── 행정규칙 ──
+export interface AdmrulListItem {
+  adm_uid: string; doc_target: string; adm_id: string; adm_name: string;
+  adm_type: string | null; ministry: string | null;
+  enforcement_date: string | null; mst: string | null; is_active: boolean;
+  status: string | null; attempts: number | null; last_collected_at: string | null;
+}
+export interface AdmrulsResponse { total: number; page: number; size: number; items: AdmrulListItem[]; }
+export interface Attachment { name: string; url: string; }
+export interface AdmrulPayload {
+  law_name: string; mst: string; law_type: string; enforcement_date: string;
+  body: { format: string; article_count: number; articles: Article[]; unmatched_relations?: Relation[] };
+  addenda?: { promulgation_date: string; promulgation_no: string; content: string }[];
+  appendices?: Appendix[];
+  attachments?: Attachment[];
+  relation_stats: Record<string, any>;
+}
+export interface AdmrulDetail {
+  adm_id: string; adm_uid?: string; doc_target?: string; adm_name: string;
+  collected: boolean; synced_at: string | null;
+  catalog: any; state: any; payload: AdmrulPayload | null;
+}
+export interface ScopeConfig {
+  law_include_list: string | null; law_only: boolean;
+  admrul_enabled: boolean; admrul_include_list: string | null;
+}
 
 // ── 함수 ──
 export const api = {
@@ -72,4 +115,11 @@ export const api = {
   setSchedule: (cron: string) => http.put("/schedule", { cron }).then((r) => r.data),
   delSchedule: () => http.delete("/schedule").then((r) => r.data),
   verify: (body: { mode?: string; n?: number; names?: string[] }) => http.post("/verify", body).then((r) => r.data),
+  // 행정규칙
+  admrulStats: () => http.get<Stats>("/admrul-stats").then((r) => r.data),
+  admruls: (p: { query?: string; status?: string; adm_type?: string; doc_target?: string;
+                 col_from?: string; col_to?: string; order?: string; page?: number; size?: number }) =>
+    http.get<AdmrulsResponse>("/admruls", { params: p }).then((r) => r.data),
+  admrul: (uid: string) => http.get<AdmrulDetail>(`/admruls/${encodeURIComponent(uid)}`).then((r) => r.data),
+  config: () => http.get<ScopeConfig>("/config").then((r) => r.data),
 };

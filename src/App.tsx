@@ -1,12 +1,14 @@
 import { Layout, Menu } from "antd";
 import {
   DashboardOutlined, FileTextOutlined, ThunderboltOutlined,
-  ScheduleOutlined, HistoryOutlined,
+  ScheduleOutlined, HistoryOutlined, ProfileOutlined,
 } from "@ant-design/icons";
 import { Link, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import Laws from "./pages/Laws";
 import LawDetail from "./pages/LawDetail";
+import Admruls from "./pages/Admruls";
+import AdmrulDetail from "./pages/AdmrulDetail";
 import Ops from "./pages/Ops";
 import SchedulePage from "./pages/Schedule";
 import History from "./pages/History";
@@ -16,6 +18,7 @@ const { Sider, Header, Content } = Layout;
 const MENU = [
   { key: "/dashboard", icon: <DashboardOutlined />, label: <Link to="/dashboard">대시보드</Link> },
   { key: "/laws", icon: <FileTextOutlined />, label: <Link to="/laws">법령</Link> },
+  { key: "/admruls", icon: <ProfileOutlined />, label: <Link to="/admruls">행정규칙</Link> },
   { key: "/ops", icon: <ThunderboltOutlined />, label: <Link to="/ops">운영(실행)</Link> },
   { key: "/schedule", icon: <ScheduleOutlined />, label: <Link to="/schedule">스케줄</Link> },
   { key: "/history", icon: <HistoryOutlined />, label: <Link to="/history">이력</Link> },
@@ -42,6 +45,8 @@ export default function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/laws" element={<Laws />} />
             <Route path="/laws/:lawId" element={<LawDetail />} />
+            <Route path="/admruls" element={<Admruls />} />
+            <Route path="/admruls/:admUid" element={<AdmrulDetail />} />
             <Route path="/ops" element={<Ops />} />
             <Route path="/schedule" element={<SchedulePage />} />
             <Route path="/history" element={<History />} />
